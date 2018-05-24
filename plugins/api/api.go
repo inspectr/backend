@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/Inspectr/backend/plugins/api/utils"
 	log "github.com/codeamp/logger"
 	"github.com/codeamp/transistor"
 	redis "github.com/go-redis/redis"
@@ -17,6 +16,7 @@ import (
 	"github.com/graph-gophers/graphql-go/relay"
 	"github.com/inspectr/backend/assets"
 	resolvers "github.com/inspectr/backend/plugins/api/resolvers"
+	"github.com/inspectr/backend/plugins/api/utils"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/spf13/viper"
