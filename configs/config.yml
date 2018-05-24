@@ -1,0 +1,24 @@
+---
+environment: "development"
+redis:
+  username:
+  password:
+  server: "0.0.0.0:6379"
+  database: "0"
+  pool: "30"
+  process: "inspectr"
+plugins:
+  api:
+    workers: 1
+    postgres:
+      host: "0.0.0.0"
+      port: "5432"
+      user: "postgres"
+      dbname: "inspectr"
+      sslmode: "disable"
+      password: ""
+    service_address: ":3000"
+  heartbeat:
+    workers: 0
+  gdax:
+    workers: 1
