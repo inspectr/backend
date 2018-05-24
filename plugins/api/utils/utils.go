@@ -14,6 +14,7 @@ import (
 	"github.com/go-redis/redis"
 	resolvers "github.com/inspectr/backend/plugins/api/resolvers"
 	"github.com/jinzhu/gorm"
+	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )

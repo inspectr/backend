@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${DOCKER_COMPOSE_CORE_PORT}:3000"
+      - "${DOCKER_COMPOSE_BACKEND_PORT}:3000"
     volumes:
       - .:/go/src/github.com/inspectr/backend
     depends_on:
