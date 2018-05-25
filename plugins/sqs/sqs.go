@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 	log "github.com/codeamp/logger"
 	"github.com/codeamp/transistor"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/inspectr/backend/plugins"
 	"github.com/spf13/viper"
 )
@@ -19,6 +20,13 @@ import (
 type SQS struct {
 	events chan transistor.Event
 	queue  Queue
+}
+
+type SQSMessage struct {
+	sqsResponse   aws_sqs.ReceiveMessageOutput
+	trail         plugins.Trail
+	success       bool
+	statusMessage string
 }
 
 type Queue struct {
@@ -36,38 +44,6 @@ func (x *SQS) Subscribe() []string {
 	return []string{
 		"trail:status",
 	}
-}
-
-func (x *SQS) getMessages(q Queue) ([]plugins.Trail, error) {
-
-	msgs, err := q.GetMessages(5, 20)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Info("successfully Got Messages...")
-	return msgs, nil
-}
-
-func (x *SQS) deleteMessages(e transistor.Event) error {
-	if e.PayloadModel == "plugins.Trail" {
-
-		msg := e.Payload.(plugins.Trail)
-
-		deleteParams := aws_sqs.DeleteMessageInput{
-			QueueUrl:      aws.String(x.queue.URL),
-			ReceiptHandle: &msg.MessageID,
-		}
-
-		_, err := x.queue.Client.DeleteMessage(&deleteParams)
-		if err != nil {
-			return err
-		} else {
-			return nil
-		}
-
-	}
-	return nil
 }
 
 func (x *SQS) Process(e transistor.Event) error {
@@ -108,14 +84,17 @@ func (x *SQS) Start(e chan transistor.Event) error {
 
 	go func(x *SQS, e chan transistor.Event) {
 		for {
-			msgs, err := x.getMessages(x.queue)
+			msgs, err := x.queue.GetMessages(1, 20)
 			if err != nil {
 				log.Error(err)
 			}
 
 			for _, msg := range msgs {
-				nEvent := transistor.NewEvent(transistor.EventName("trail"), transistor.GetAction("create"), msg)
-				e <- nEvent
+				if msg.success == true {
+					e <- transistor.NewEvent(transistor.EventName("trail"), transistor.GetAction("create"), msg.trail)
+				} else if msg.success == false {
+					x.deleteMessages(transistor.NewEvent(transistor.EventName("trail"), transistor.GetAction("delete"), msg.trail))
+				}
 			}
 
 			time.Sleep(1)
@@ -131,7 +110,7 @@ func (x *SQS) Stop() {
 
 // GetMessages returns the parsed messages from SQS if any. If an error
 // occurs that error will be returned.
-func (q *Queue) GetMessages(numMessages int64, waitTimeout int64) ([]plugins.Trail, error) {
+func (q *Queue) GetMessages(numMessages int64, waitTimeout int64) ([]SQSMessage, error) {
 	params := aws_sqs.ReceiveMessageInput{
 		QueueUrl:            aws.String(q.URL),
 		MaxNumberOfMessages: aws.Int64(numMessages),
@@ -144,17 +123,49 @@ func (q *Queue) GetMessages(numMessages int64, waitTimeout int64) ([]plugins.Tra
 		return nil, fmt.Errorf("failed to get messages, %v", err)
 	}
 
-	msgs := make([]plugins.Trail, len(resp.Messages))
+	log.Info("Succesfully got SQS Messages")
+
+	msgs := make([]SQSMessage, len(resp.Messages))
 	for i, msg := range resp.Messages {
-		parsedMsg := plugins.Trail{}
-		if err := json.Unmarshal([]byte(aws.StringValue(msg.Body)), &parsedMsg); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal message, %v", err)
+
+		sqsMessage := SQSMessage{}
+		parsedTrail := plugins.Trail{}
+		parsedTrail.MessageID = *msg.ReceiptHandle
+		if err := json.Unmarshal([]byte(aws.StringValue(msg.Body)), &parsedTrail); err != nil {
+			sqsMessage.success = false
+			sqsMessage.statusMessage = fmt.Sprintf("failed to unmarshal message, %v", err)
 		}
+		sqsMessage.success = true
 
-		parsedMsg.MessageID = *msg.ReceiptHandle
+		sqsMessage.trail = parsedTrail
 
-		msgs[i] = parsedMsg
+		spew.Dump(sqsMessage)
+
+		msgs[i] = sqsMessage
 	}
 
 	return msgs, nil
+}
+
+func (x *SQS) deleteMessages(e transistor.Event) error {
+	if e.PayloadModel == "plugins.Trail" {
+
+		msg := e.Payload.(plugins.Trail)
+
+		deleteParams := aws_sqs.DeleteMessageInput{
+			QueueUrl:      aws.String(x.queue.URL),
+			ReceiptHandle: &msg.MessageID,
+		}
+
+		_, err := x.queue.Client.DeleteMessage(&deleteParams)
+		if err != nil {
+			log.Info("Failed to delete SQS Message")
+			return err
+		} else {
+			log.Info("Deleted SQS Message")
+			return nil
+		}
+
+	}
+	return nil
 }
