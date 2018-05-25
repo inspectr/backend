@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 	log "github.com/codeamp/logger"
 	"github.com/codeamp/transistor"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/inspectr/backend/plugins"
 	"github.com/spf13/viper"
 )
@@ -138,8 +137,6 @@ func (q *Queue) GetMessages(numMessages int64, waitTimeout int64) ([]SQSMessage,
 		sqsMessage.success = true
 
 		sqsMessage.trail = parsedTrail
-
-		spew.Dump(sqsMessage)
 
 		msgs[i] = sqsMessage
 	}
