@@ -2,9 +2,11 @@ package inspectr_resolvers
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	graphql "github.com/graph-gophers/graphql-go"
+	"github.com/jinzhu/gorm"
 )
 
 // User Retrieve single user by ID
@@ -20,11 +22,21 @@ func (r *Resolver) Users() []*UserResolver {
 }
 
 // Trails
-func (r *Resolver) Trails(ctx context.Context) ([]*TrailResolver, error) {
+func (r *Resolver) Trails(ctx context.Context, args *struct {
+	Event *string
+}) ([]*TrailResolver, error) {
 	var rows []Trail
 	var results []*TrailResolver
 
-	r.DB.Order("created_at desc").Find(&rows)
+	var query *gorm.DB
+
+	if args.Event != nil && *args.Event != "" {
+		query = r.DB.Where("event IN (?)", strings.Split(*args.Event, ","))
+	} else {
+		query = r.DB
+	}
+
+	query.Order("created_at desc").Find(&rows)
 
 	for _, trail := range rows {
 		results = append(results, &TrailResolver{DB: r.DB, Trail: trail})
@@ -52,7 +64,7 @@ func (r *Resolver) Metrics(ctx context.Context, args *struct {
 
 	r.DB.Debug().Raw(`SELECT COUNT(*) count, 
 	to_timestamp(floor((extract('epoch' from created_at) / $1 )) * $1) 
-	as interval
+	AT TIME ZONE 'UTC' as interval
 	FROM trails
 	WHERE created_at >= $2 AND created_at <= $3
 	GROUP BY interval`, args.Interval, args.StartsAt.Time, args.EndsAt.Time).Scan(&intervalMetrics)

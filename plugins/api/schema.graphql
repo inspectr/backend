@@ -12,7 +12,7 @@ type Query {
   # Retrieve all users
   users(): [User]!
   # Retrive trails
-  trails(): [Trail]!
+  trails(event: String): [Trail]!
   # Retrive metrics
   metrics(startsAt: Time, endsAt: Time, interval: Int): [Metric]!
 }
