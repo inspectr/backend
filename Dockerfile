@@ -1,4 +1,6 @@
+FROM quay.io/coreos/dex:v2.10.0
 FROM golang:alpine
+COPY --from=0 /usr/local/bin/dex /usr/local/bin/dex
 
 ARG APP_NAME=inspectr
 ARG APP_PATH=/go/src/github.com/inspectr/backend
