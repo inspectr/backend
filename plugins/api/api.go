@@ -1,6 +1,7 @@
 package inspectr
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,15 +16,20 @@ import (
 	graphql "github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
 	"github.com/inspectr/backend/assets"
+	"github.com/inspectr/backend/plugins"
 	resolvers "github.com/inspectr/backend/plugins/api/resolvers"
 	"github.com/inspectr/backend/plugins/api/utils"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/spf13/viper"
 )
 
 func init() {
-	transistor.RegisterPlugin("api", func() transistor.Plugin { return NewAPI() })
+	transistor.RegisterPlugin("api", func() transistor.Plugin {
+		return NewAPI()
+	},
+		plugins.Trail{},
+		plugins.HeartBeat{})
 }
 
 type API struct {
@@ -111,15 +117,63 @@ func (x *API) Stop() {
 
 func (x *API) Subscribe() []string {
 	return []string{
-		"plugins.HeartBeat",
-		"plugins.Tick:create",
+		"heartbeat",
+		"trail:create",
 	}
 }
 
 func (x *API) Process(e transistor.Event) error {
-	log.InfoWithFields("process API event", log.Fields{
+	log.DebugWithFields("process API event", log.Fields{
 		"event_name": e.Name,
 	})
+
+	if e.Name == "trail" {
+		payload := e.Payload.(plugins.Trail)
+		if e.Action == "create" {
+			eventMetadataMarshaled, err := json.Marshal(payload.EventMetadata)
+			if err != nil {
+				log.Error(err)
+			}
+			eventMetadataJsonb := postgres.Jsonb{eventMetadataMarshaled}
+
+			actorMetadataMarshaled, err := json.Marshal(payload.ActorMetadata)
+			if err != nil {
+				log.Error(err)
+			}
+			actorMetadataJsonb := postgres.Jsonb{actorMetadataMarshaled}
+
+			targetMetadataMarshaled, err := json.Marshal(payload.TargetMetadata)
+			if err != nil {
+				log.Error(err)
+			}
+			targetMetadataJsonb := postgres.Jsonb{targetMetadataMarshaled}
+
+			originMetadataMarshaled, err := json.Marshal(payload.OriginMetadata)
+			if err != nil {
+				log.Error(err)
+			}
+			originMetadataJsonb := postgres.Jsonb{originMetadataMarshaled}
+
+			trail := resolvers.Trail{
+				Timestamp:      payload.Timestamp,
+				Event:          payload.Event,
+				EventMetadata:  eventMetadataJsonb,
+				Actor:          payload.Actor,
+				ActorMetadata:  actorMetadataJsonb,
+				Target:         payload.Target,
+				TargetMetadata: targetMetadataJsonb,
+				Origin:         payload.Origin,
+				OriginMetadata: originMetadataJsonb,
+			}
+
+			if x.DB.Create(&trail).Error != nil {
+				log.Error(err)
+				x.Events <- e.NewEvent(transistor.GetAction("status"), transistor.GetState("failed"), "ack")
+			} else {
+				x.Events <- e.NewEvent(transistor.GetAction("status"), transistor.GetState("complete"), "ack")
+			}
+		}
+	}
 
 	return nil
 }

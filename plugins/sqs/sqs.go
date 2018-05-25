@@ -121,19 +121,20 @@ func (q *Queue) GetMessages(numMessages int64, waitTimeout int64) ([]SQSMessage,
 		QueueUrl:            aws.String(q.URL),
 		MaxNumberOfMessages: aws.Int64(numMessages),
 	}
+
 	if waitTimeout > 0 {
 		params.WaitTimeSeconds = aws.Int64(waitTimeout)
 	}
+
 	resp, err := q.Client.ReceiveMessage(&params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get messages, %v", err)
 	}
 
-	log.Info("Succesfully got SQS Messages")
+	log.Debug("Succesfully got SQS Messages")
 
 	msgs := make([]SQSMessage, len(resp.Messages))
 	for i, msg := range resp.Messages {
-
 		sqsMessage := SQSMessage{}
 		parsedTrail := plugins.Trail{}
 		parsedTrail.MessageID = *msg.ReceiptHandle
@@ -142,7 +143,6 @@ func (q *Queue) GetMessages(numMessages int64, waitTimeout int64) ([]SQSMessage,
 			sqsMessage.statusMessage = fmt.Sprintf("failed to unmarshal message, %v", err)
 		}
 		sqsMessage.success = true
-
 		sqsMessage.trail = parsedTrail
 
 		msgs[i] = sqsMessage
@@ -166,7 +166,7 @@ func (x *SQS) deleteMessages(e transistor.Event) error {
 			log.Info("Failed to delete SQS Message")
 			return err
 		} else {
-			log.Info("Deleted SQS Message")
+			log.Debug("Deleted SQS Message")
 			return nil
 		}
 
