@@ -24,5 +24,5 @@ plugins:
     workers: 1
     aws_access_key_id: ""
     aws_secret_access_key: ""
-    aws_sqs_url: "https://sqs.us-east-1.amazonaws.com/927411751048/inspectr.fifo"
+    aws_sqs_url: ""
     aws_region: "us-east-1"
