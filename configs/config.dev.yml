@@ -22,7 +22,7 @@ plugins:
     workers: 0
   sqs:
     workers: 1
-    aws_access_key_id: "AKIAJAYUCITNHKDGD5TA"
-    aws_secret_access_key: "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"
+    aws_access_key_id: ""
+    aws_secret_access_key: ""
     aws_sqs_url: "https://sqs.us-east-1.amazonaws.com/927411751048/inspectr.fifo"
     aws_region: "us-east-1"
