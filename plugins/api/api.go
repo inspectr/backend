@@ -38,10 +38,6 @@ func NewAPI() *API {
 	return &API{}
 }
 
-func (x *API) Migrate() {
-
-}
-
 func (x *API) Listen() {
 	_, filename, _, _ := runtime.Caller(0)
 	fs := http.FileServer(http.Dir(path.Join(path.Dir(filename), "static/")))
@@ -75,7 +71,7 @@ func (x *API) Start(events chan transistor.Event) error {
 		log.Panic(err)
 	}
 
-	parsedSchema, err := graphql.ParseSchema(string(schema), &resolvers.Resolver{DB: x.DB})
+	parsedSchema, err := graphql.ParseSchema(string(schema), &resolvers.Resolver{DB: db})
 	if err != nil {
 		log.Panic(err)
 	}

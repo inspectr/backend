@@ -11,6 +11,21 @@ type Query {
   user(id: ID): User
   # Retrieve all users
   users(): [User]!
+  # Retrive trails
+  trails(): [Trail]!
+}
+
+type Trail {
+  id: ID!
+  event: String!
+  eventMetadata: JSON!
+  actor: String!
+  actorMetadata: JSON!
+  target: String!
+  targetMetadata: JSON!
+  origin: String!
+  originMetadata: JSON!
+  created: Time!
 }
 
 # User
