@@ -10,6 +10,8 @@ redis:
 plugins:
   api:
     workers: 1
+    oidc_uri: 
+    oidc_client_id: 
     postgres:
       host: "postgres"
       port: "5432"

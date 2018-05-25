@@ -26,7 +26,7 @@ _testmain.go
 node_modules/
 .DS_Store
 dev.config.yml
-config.dev.yml
+configs/config.dev.yml
 server/secrets/*
 
 # Vim swap files
