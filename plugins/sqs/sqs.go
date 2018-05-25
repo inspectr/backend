@@ -58,13 +58,20 @@ func (x *SQS) Process(e transistor.Event) error {
 func (x *SQS) Start(e chan transistor.Event) error {
 	x.events = e
 
+	aws_access_key_id := viper.GetString("plugins.sqs.aws_access_key_id")
+	aws_secret_access_key := viper.GetString("plugins.sqs.aws_secret_access_key")
+
+	if aws_access_key_id == "" || aws_secret_access_key == "" {
+		panic("Missing AWS SQS credentials")
+	}
+
 	region := viper.GetString("plugins.sqs.aws_region")
 	sess := session.Must(session.NewSessionWithOptions(
 		session.Options{
 			Config: aws.Config{
 				Credentials: credentials.NewStaticCredentials(
-					viper.GetString("plugins.sqs.aws_access_key_id"),
-					viper.GetString("plugins.sqs.aws_secret_access_key"),
+					aws_access_key_id,
+					aws_secret_access_key,
 					"",
 				),
 				Region: &region,
