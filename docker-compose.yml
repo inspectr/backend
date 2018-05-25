@@ -17,14 +17,16 @@ services:
       - backend
   inspectr-backend:
     image: inspectr-backend:v001
-    command: sh -c "reflex -c reflex.conf"
+    command: sh -c "/usr/local/bin/dex serve configs/dex.yml & reflex -c reflex.conf"
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "${DOCKER_COMPOSE_BACKEND_PORT}:3000"
+      - "${DOCKER_COMPOSE_DEX_PORT}:5556"
     volumes:
       - .:/go/src/github.com/inspectr/backend
+      - ./:/etc/dex
     depends_on:
       - postgres
       - redis

@@ -13,6 +13,8 @@ type Query {
   users(): [User]!
   # Retrive trails
   trails(): [Trail]!
+  # Retrive metrics
+  metrics(startsAt: Time, endsAt: Time, interval: Int): [Metric]!
 }
 
 type Trail {
@@ -26,6 +28,12 @@ type Trail {
   origin: String!
   originMetadata: JSON!
   created: Time!
+}
+
+type Metric {
+  startsAt: Time!
+  interval: Int!
+  size: Int!
 }
 
 # User
