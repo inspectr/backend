@@ -20,19 +20,19 @@ type Trail struct {
 	// Event
 	Event string `json:"event"`
 	// EventMetadata
-	EventMetadata interface{} `json:"event_metadata"`
+	EventMetadata interface{} `json:"eventMetadata"`
 	// Actor
 	Actor string `json:"actor"`
 	// ActorMetadata
-	ActorMetadata interface{} `json:"actor_metadata"`
+	ActorMetadata interface{} `json:"actorMetadata"`
 	// Target
 	Target string `json:"target"`
 	// TargetMetadata
-	TargetMetadata interface{} `json:"target_metadata"`
+	TargetMetadata interface{} `json:"targetMetadata"`
 	// Origin
 	Origin string `json:"origin"`
 	// OriginMetadata
-	OriginMetadata interface{} `json:"origin_metadata"`
+	OriginMetadata interface{} `json:"originMetadata"`
 
 	// MessageID
 	MessageID string

@@ -17,19 +17,19 @@ type Trail struct {
 	// Event
 	Event string `json:"event" gorm:"type:varchar(100)"`
 	// EventMetadata
-	EventMetadata postgres.Jsonb `json:"event_metadata" gorm:"type:jsonb;"`
+	EventMetadata postgres.Jsonb `json:"eventMetadata" gorm:"type:jsonb;"`
 	// Actor
 	Actor string `json:"actor"`
 	// ActorMetadata
-	ActorMetadata postgres.Jsonb `json:"actor_metadata" gorm:"type:jsonb;"`
+	ActorMetadata postgres.Jsonb `json:"actorMetadata" gorm:"type:jsonb;"`
 	// Target
 	Target string `json:"target"`
 	// TargetMetadata
-	TargetMetadata postgres.Jsonb `json:"target_metadata" gorm:"type:jsonb;"`
+	TargetMetadata postgres.Jsonb `json:"targetMetadata" gorm:"type:jsonb;"`
 	// Origin
 	Origin string `json:"origin"`
 	// OriginMetadata
-	OriginMetadata postgres.Jsonb `json:"origin_metadata" gorm:"type:jsonb;"`
+	OriginMetadata postgres.Jsonb `json:"originMetadata" gorm:"type:jsonb;"`
 }
 
 // TrailResolver resolver for Trail
